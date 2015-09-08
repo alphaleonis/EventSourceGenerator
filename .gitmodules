@@ -1,0 +1,3 @@
+[submodule "AlphaVSX"]
+	path = AlphaVSX
+	url = https://github.com/alphaleonis/AlphaVSX.git
