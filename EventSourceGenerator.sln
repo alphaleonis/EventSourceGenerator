@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourceGenerator", "EventSourceGenerator\EventSourceGenerator.csproj", "{8B9EF7F7-2D88-4357-B0B2-00B2A95E990B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.Diagnostics.Tracing", "Microsoft.Diagnostics.Tracing", "{7B62B296-E5A7-4C9A-8A56-B4988EEC2419}"
+	ProjectSection(SolutionItems) = preProject
+		TemplateAttributes\Microsoft.Diagnostics.Tracing\EventSourceGeneratorTemplateAttributes.Nuget.1.0.0.nuspec = TemplateAttributes\Microsoft.Diagnostics.Tracing\EventSourceGeneratorTemplateAttributes.Nuget.1.0.0.nuspec
+		TemplateAttributes\Microsoft.Diagnostics.Tracing\Content\EventSourceTemplateAttributes.cs = TemplateAttributes\Microsoft.Diagnostics.Tracing\Content\EventSourceTemplateAttributes.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "System.Diagnostics.Tracing", "System.Diagnostics.Tracing", "{AD70F159-ADD0-494B-8A62-B19A8F86A1F4}"
+	ProjectSection(SolutionItems) = preProject
+		TemplateAttributes\System.Diagnostics.Tracing\EventSourceGeneratorTemplateAttributes.NET.1.0.0.nuspec = TemplateAttributes\System.Diagnostics.Tracing\EventSourceGeneratorTemplateAttributes.NET.1.0.0.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net45", "net45", "{F10E946E-3D53-4994-ACF9-C2E20350B551}"
+	ProjectSection(SolutionItems) = preProject
+		TemplateAttributes\System.Diagnostics.Tracing\Content\net45\EventSourceTemplateAttributes.cs = TemplateAttributes\System.Diagnostics.Tracing\Content\net45\EventSourceTemplateAttributes.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net46", "net46", "{7F7F0B05-10FE-4E11-850B-FE73E9BBE9E3}"
+	ProjectSection(SolutionItems) = preProject
+		TemplateAttributes\System.Diagnostics.Tracing\Content\net46\EventSourceTemplateAttributes.cs = TemplateAttributes\System.Diagnostics.Tracing\Content\net46\EventSourceTemplateAttributes.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Template Attributes", "Template Attributes", "{FD0D631F-E0D6-4AC7-80E8-CA59BCF17857}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlphaVSX", "AlphaVSX\AlphaVSX.csproj", "{55C0204E-67A8-475D-95F6-529F9CFFE465}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B9EF7F7-2D88-4357-B0B2-00B2A95E990B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B9EF7F7-2D88-4357-B0B2-00B2A95E990B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B9EF7F7-2D88-4357-B0B2-00B2A95E990B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B9EF7F7-2D88-4357-B0B2-00B2A95E990B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55C0204E-67A8-475D-95F6-529F9CFFE465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55C0204E-67A8-475D-95F6-529F9CFFE465}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55C0204E-67A8-475D-95F6-529F9CFFE465}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55C0204E-67A8-475D-95F6-529F9CFFE465}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7B62B296-E5A7-4C9A-8A56-B4988EEC2419} = {FD0D631F-E0D6-4AC7-80E8-CA59BCF17857}
+		{AD70F159-ADD0-494B-8A62-B19A8F86A1F4} = {FD0D631F-E0D6-4AC7-80E8-CA59BCF17857}
+		{F10E946E-3D53-4994-ACF9-C2E20350B551} = {AD70F159-ADD0-494B-8A62-B19A8F86A1F4}
+		{7F7F0B05-10FE-4E11-850B-FE73E9BBE9E3} = {AD70F159-ADD0-494B-8A62-B19A8F86A1F4}
+	EndGlobalSection
+EndGlobal

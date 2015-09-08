@@ -1,1 +1,1 @@
-# EventSourceClassGenerator
+# EventSourceGenerator
