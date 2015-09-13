@@ -61,9 +61,9 @@ namespace Alphaleonis.EventSourceGenerator
       {
          //GenerateAllInProjectCommand.Initialize(this);
          //Host.Initialize(this);                  
-         IVisualStudio devEnv = Toolkit.Initialize(this);
          base.Initialize();
-//         devEnv.DialogService.ShowMessageBox("Hello World!");
+         IVisualStudio devEnv = Toolkit.Initialize(this);
+         //devEnv.DialogService.ShowMessageBox("Hello World!");
 
       }
 
