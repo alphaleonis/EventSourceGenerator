@@ -5,13 +5,14 @@
       <DisplayName>EventSourceGenerator</DisplayName>
       <Description xml:space="preserve">An extension that helps writing EventSource classes for ETW tracing by automatically generating efficient implementations of the Event methods based on an abstract class, thus alleviating the developer from writing this boilerplate code.</Description>
       <License>LICENSE.TXT</License>
+      <Icon>Package.ico</Icon>
       <Tags>EventSource</Tags>
    </Metadata>
    <Installation InstalledByMsi="false">
       <InstallationTarget Version="[14.0,15.0)" Id="Microsoft.VisualStudio.Enterprise" />
    </Installation>
    <Dependencies>
-      <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+      <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />
       <Dependency d:Source="Installed" Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" Version="[14.0,15.0)" />
    </Dependencies>
    <Assets>
