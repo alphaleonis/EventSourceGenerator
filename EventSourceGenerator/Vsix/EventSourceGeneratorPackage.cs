@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
 using System.Linq;
 using Alphaleonis.Vsx;
+using System.ComponentModel.Composition;
 
 namespace Alphaleonis.EventSourceGenerator
 {
@@ -35,7 +36,7 @@ namespace Alphaleonis.EventSourceGenerator
    [PackageRegistration(UseManagedResourcesOnly = true)]
    [InstalledProductRegistration("#1110", "#1112", "1.0", IconResourceID = 1400)] // Info on this package for Help/About
    [ProvideMenuResource("Menus.ctmenu", 1)]
-   [Guid(GenerateAllInProjectCommandPackageGuids.PackageGuidString)]
+   //[Guid(GenerateAllInProjectCommandPackageGuids.PackageGuidString)]   
    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
    public sealed class EventSourceGeneratorPackage : Package
@@ -51,6 +52,12 @@ namespace Alphaleonis.EventSourceGenerator
          // initialization is the Initialize method.
       }
 
+      [Import]
+      private IDialogService DialogService
+      {
+         get; set;
+      }
+
       #region Package Members
 
       /// <summary>
@@ -59,36 +66,10 @@ namespace Alphaleonis.EventSourceGenerator
       /// </summary>
       protected override void Initialize()
       {
-         //GenerateAllInProjectCommand.Initialize(this);
-         //Host.Initialize(this);                  
          base.Initialize();
-         IVisualStudio devEnv = Toolkit.Initialize(this);
-         //devEnv.DialogService.ShowMessageBox("Hello World!");
-
+         Toolkit.Initialize(this);
       }
-
-
-      protected override object GetService(Type serviceType)
-      {
-         var service = base.GetService(serviceType);
-         IVsUIShell uiShell = service as IVsUIShell;
-         
-         var asms = AppDomain.CurrentDomain.GetAssemblies().Where(asm =>
-         {
-            try
-            {
-               return asm.GetTypes().Any(t => t.FullName == "Microsoft.VisualStudio.Shell.Interop.IVsUIShell");
-            }
-            catch
-            {
-               return false;
-            }
-         }).ToArray();
-
-         uiShell = service as IVsUIShell;
-
-         return service;
-      }
+      
       #endregion
    }
 }

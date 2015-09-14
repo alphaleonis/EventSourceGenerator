@@ -272,9 +272,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\SyntaxFactoryExtensions.cs" />
-    <Compile Include="Vsix\Commands\GenerateAllInProjectCommand.cs" />
     <Compile Include="Vsix\EventSourceGeneratorPackage.cs" />
-    <Compile Include="Vsix\Commands\GenerateAllInProjectCommandPackageGuids.cs" />
     <Compile Include="Vsix\BaseCodeGenerator.cs" />
     <Compile Include="Vsix\BaseTextCodeGenerator.cs" />
     <Compile Include="Generation\EventSourceGenerator.cs" />
@@ -289,7 +287,7 @@
     <Compile Include="Generation\EventSourceGenerator.WriteEventOverloadInfo.cs" />
     <Compile Include="Utils\SmartEnumerable.cs" />
     <Compile Include="Vsix\EventSourceSingleFileGenerator.cs" />
-    <Compile Include="GenerationException.cs" />
+    <Compile Include="Generation\GenerationException.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -319,11 +317,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <VSCTCompile Include="Vsix\Commands\EventSourceGenerator.vsct">
-      <ResourceName>Menus.ctmenu</ResourceName>
-    </VSCTCompile>
-    <Resource Include="Resources\GenerateAllInProjectCommand.png" />
-    <Resource Include="Resources\GenerateAllInProjectCommandPackage.ico" />
     <Content Include="Resources\Package.ico" />
   </ItemGroup>
   <ItemGroup>

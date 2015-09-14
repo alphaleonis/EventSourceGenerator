@@ -1,8 +1,7 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -98,7 +97,7 @@ namespace Alphaleonis.EventSourceClassGenerator
             if (attributeListSyntax != null)
             {
                if (attributeListSyntax.Attributes.Count != 1)
-                  throw new GenerationException(attribute.GetLocation(), "Expected a single attribute in attribute list, but either none or more than one were found.");
+                  throw new GenerationException(attribute, "Expected a single attribute in attribute list, but either none or more than one were found.");
 
                attributeSyntax = attributeListSyntax.Attributes.Single();
             }
@@ -106,7 +105,7 @@ namespace Alphaleonis.EventSourceClassGenerator
             {
                attributeSyntax = attribute as AttributeSyntax;
                if (attributeSyntax == null)
-                  throw new GenerationException($"SyntaxNode was not of expected type {typeof(AttributeSyntax).FullName}");
+                  throw new GenerationException(attribute, $"SyntaxNode was not of expected type {typeof(AttributeSyntax).FullName}");
             }
 
             AddToDictionary(attributeSyntax, "Keywords", m_keywords, semanticModel, eventSourceTypeInfo.EventKeywordsType);
@@ -117,19 +116,62 @@ namespace Alphaleonis.EventSourceClassGenerator
          private void AddToDictionary(AttributeSyntax attributeSyntax, string name, Dictionary<string, SyntaxNode> dictionary, SemanticModel semanticModel, INamedTypeSymbol predefinedType)
          {
             var argument = attributeSyntax.ArgumentList.Arguments.FirstOrDefault(arg => arg.NameEquals?.Name?.Identifier.Text == name);
+
             if (argument != null)
             {
-               MemberAccessExpressionSyntax memberAccess = argument.Expression as MemberAccessExpressionSyntax;
-               IdentifierNameSyntax nameSyntax = memberAccess?.Expression as IdentifierNameSyntax;
-               if (memberAccess == null || nameSyntax == null)
-                  throw new GenerationException(attributeSyntax.GetLocation(), $"The assignment to the Keyword, Task and Opcode  arguments must be a simple member access expression.");
-
-               TypeInfo ti = semanticModel.GetTypeInfo(memberAccess.Expression);
-               if (!predefinedType.Equals(ti.Type))
-                  dictionary[memberAccess.Name.Identifier.Text] = argument.Expression;
+               KeywordsExpressionCollectorVisitor visitor = new KeywordsExpressionCollectorVisitor();
+               
+               foreach (var memberAccess in visitor.Visit(argument.Expression))
+               {
+                  TypeInfo ti = semanticModel.GetTypeInfo(memberAccess.Expression);
+                  if (!predefinedType.Equals(ti.Type))
+                     dictionary[memberAccess.Name.Identifier.Text] = memberAccess;
+               }
             }
          }
 
+         class KeywordsExpressionCollectorVisitor : CSharpSyntaxVisitor<IEnumerable<MemberAccessExpressionSyntax>>
+         {
+            public override IEnumerable<MemberAccessExpressionSyntax> DefaultVisit(SyntaxNode node)
+            {
+               throw new GenerationException(node, $"Unsupported node {node.Kind()} found in enum assignment expression.");
+            }
+
+            public override IEnumerable<MemberAccessExpressionSyntax> VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
+            {
+               return node.Expression.Accept(this);
+            }
+
+            public override IEnumerable<MemberAccessExpressionSyntax> VisitBinaryExpression(BinaryExpressionSyntax node)
+            {
+               switch (node.Kind())
+               {
+                  case SyntaxKind.BitwiseAndExpression:
+                  case SyntaxKind.BitwiseOrExpression:
+                  case SyntaxKind.ExclusiveOrExpression:
+                  case SyntaxKind.AddExpression:
+                     break;
+
+                  default:
+                     throw new GenerationException(node.GetLocation(), $"Unsupported binary expression {node.Kind()}. Only bitwise OR, AND, XOR and addition is allowed.");
+               }
+
+               return node.ChildNodes().SelectMany(n => Visit(n));
+            }
+
+            public override IEnumerable<MemberAccessExpressionSyntax> VisitLiteralExpression(LiteralExpressionSyntax node)
+            {
+               return Enumerable.Empty<MemberAccessExpressionSyntax>();
+            }
+
+            public override IEnumerable<MemberAccessExpressionSyntax> VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+            {
+               if (node.Kind() != SyntaxKind.SimpleMemberAccessExpression)
+                  throw new GenerationException(node, $"Unsupported expression of type {node.Kind()} in enum assignment. Only simple member access is allowed.");
+
+               return new[] { node };
+            }
+         }
          #endregion
       }
    }

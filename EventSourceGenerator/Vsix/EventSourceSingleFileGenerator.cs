@@ -50,10 +50,10 @@ namespace Alphaleonis.EventSourceClassGenerator
 
          var result = await EventSourceGenerator.GenerateEventSourceImplementations(document);
          
-         Document doc = document.Project.AddDocument("GeneratedFile.cs", result);                  
-         doc = Simplifier.ReduceAsync(doc).Result;
+         Document doc = document.Project.AddDocument("GeneratedFile.cs", result);
+         doc = await Simplifier.ReduceAsync(doc);
          
-         writer.WriteLine(await doc.GetTextAsync());
+         await writer.WriteLineAsync((await doc.GetTextAsync()).ToString());
                   
          ReportProgress(0, 100);
       }

@@ -145,6 +145,13 @@ namespace Alphaleonis.EventSourceClassGenerator
          return Formatter.Format(targetCompilationUnit, m_document.Project.Solution.Workspace);
       }
 
+      private void ValidateReservedMemberName(INamedTypeSymbol sourceClass, string name)
+      {
+         var member = sourceClass.GetMembers(name).FirstOrDefault();
+         if (member != null)
+            throw new GenerationException(member, $"The class '{sourceClass.Name}' is not allowed to contain a member named '{name}'. Choose a different name for this member. The generated class will have a new generated nested class called '{name}', which is required by the event manifest generation.");
+      }
+
       private SyntaxNode GenerateEventSourceClass(INamedTypeSymbol sourceClass)
       {
          if (sourceClass.IsGenericType)
@@ -152,6 +159,10 @@ namespace Alphaleonis.EventSourceClassGenerator
 
          if (!sourceClass.IsAbstract)
             throw new GenerationException(sourceClass, $"The class '{sourceClass.Name}' must be abstract to participate in EventSource implementation generation.");
+
+         ValidateReservedMemberName(sourceClass, "Opcodes");
+         ValidateReservedMemberName(sourceClass, "Keywords");
+         ValidateReservedMemberName(sourceClass, "Tasks");
 
          GenerationOptions options = ParseGenerationOptions(sourceClass);
 
