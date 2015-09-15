@@ -7,12 +7,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("EventSourceClassGenerator")]
+[assembly: AssemblyTitle("Alphaleonis EventSource Generator")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Peter Palotas")]
-[assembly: AssemblyProduct("EventSourceClassGenerator")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyProduct("Alphaleonis EventSource Generator")]
+[assembly: AssemblyCopyright("Copyright © Peter Palotas")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]   
 [assembly: ComVisible(true)]     

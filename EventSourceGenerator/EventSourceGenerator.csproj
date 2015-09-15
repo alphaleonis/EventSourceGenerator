@@ -39,7 +39,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Alphaleonis.EventSourceGenerator</RootNamespace>
-    <AssemblyName>EventSourceGenerator</AssemblyName>
+    <AssemblyName>Alphaleonis.EventSourceGenerator</AssemblyName>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>

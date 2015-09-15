@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using SyntaxGenerator = Microsoft.CodeAnalysis.Editing.SyntaxGenerator;
 using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
+using System.Reflection;
+using Alphaleonis.Vsx;
 
 namespace Alphaleonis.EventSourceClassGenerator
 {
@@ -181,12 +183,12 @@ namespace Alphaleonis.EventSourceClassGenerator
 
          targetClass = m_generator.AddAttributes(targetClass, translatedAttributes);
          var overloads = new CollectedGenerationInfo(eventSourceTypeInfo);
-         var eventSourceMethods = GenerateEventSourceMethods(sourceClass, eventSourceTypeInfo, overloads, options).ToImmutableArray();
+         ImmutableArray<SyntaxNode> eventSourceMethods = GenerateEventSourceMethods(sourceClass, eventSourceTypeInfo, overloads, options).ToImmutableArray();
 
          if (eventSourceMethods.Length > 0)
          {
-            eventSourceMethods = eventSourceMethods.SetItem(0, eventSourceMethods[0].WithLeadingTrivia(CreateRegionTriviaList("Event Methods")));
-            eventSourceMethods = eventSourceMethods.SetItem(eventSourceMethods.Length - 1, eventSourceMethods.Last().WithTrailingTrivia(CreateEndRegionTriviaList()));
+            eventSourceMethods = eventSourceMethods.SetItem(0, eventSourceMethods[0].WithPrependedLeadingTrivia(CreateRegionTriviaList("Event Methods")));
+            eventSourceMethods = eventSourceMethods.SetItem(eventSourceMethods.Length - 1, eventSourceMethods.Last().WithTrailingTrivia(CreateEndRegionTriviaList().Add(SF.EndOfLine(Environment.NewLine)).Add(SF.EndOfLine(Environment.NewLine))));
          }
 
          targetClass = m_generator.AddMembers(targetClass, eventSourceMethods);
@@ -200,8 +202,8 @@ namespace Alphaleonis.EventSourceClassGenerator
 
          if (writeEventMethods.Length > 0)
          {
-            writeEventMethods = writeEventMethods.SetItem(0, writeEventMethods[0].WithLeadingTrivia(CreateRegionTriviaList("WriteEvent Overloads")));
-            writeEventMethods = writeEventMethods.SetItem(writeEventMethods.Length - 1, writeEventMethods.Last().WithTrailingTrivia(CreateEndRegionTriviaList()));
+            writeEventMethods = writeEventMethods.SetItem(0, writeEventMethods[0].WithPrependedLeadingTrivia(CreateRegionTriviaList("WriteEvent Overloads")));
+            writeEventMethods = writeEventMethods.SetItem(writeEventMethods.Length - 1, writeEventMethods.Last().WithTrailingTrivia(CreateEndRegionTriviaList().Add(SF.EndOfLine(Environment.NewLine)).Add(SF.EndOfLine(Environment.NewLine))));
          }
 
          targetClass = m_generator.AddMembers(targetClass, writeEventMethods);
@@ -213,6 +215,12 @@ namespace Alphaleonis.EventSourceClassGenerator
                GenerateConstantsClass("Opcodes", overloads.Opcodes, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventOpcode")),
                GenerateConstantsClass("Tasks", overloads.Tasks, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventTask"))
             });
+
+         // Add GeneratedCode attribute to the target class.
+         targetClass = m_generator.AddAttributes(targetClass, 
+                                                 m_generator.Attribute(typeof(System.CodeDom.Compiler.GeneratedCodeAttribute).FullName, 
+                                                      m_generator.AttributeArgument(m_generator.LiteralExpression(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>()?.Title)), 
+                                                      m_generator.AttributeArgument(m_generator.LiteralExpression(Assembly.GetExecutingAssembly().GetName().Version.ToString()))));
 
          return targetClass;
       }
@@ -236,6 +244,7 @@ namespace Alphaleonis.EventSourceClassGenerator
             classDecl = m_generator.AddMembers(classDecl, new[] { member });
          }
 
+         classDecl = classDecl.WithLeadingTrivia(CreateWarningComment());
          return classDecl;
 
       }
@@ -519,6 +528,8 @@ namespace Alphaleonis.EventSourceClassGenerator
 
             method = m_generator.WithStatements(method, statements);
 
+            method = method.WithPrependedLeadingTrivia(CreateWarningComment());
+
             yield return method;
          }
       }
@@ -650,7 +661,7 @@ namespace Alphaleonis.EventSourceClassGenerator
          return m_generator.LiteralExpression(value) as LiteralExpressionSyntax;
       }
 
-      public static FixedStatementSyntax GetFixedStatement(SyntaxKind pointerTypeKeyword, BlockSyntax fixedContent, string identifier, string initializer)
+      private static FixedStatementSyntax GetFixedStatement(SyntaxKind pointerTypeKeyword, BlockSyntax fixedContent, string identifier, string initializer)
       {
          return SF.FixedStatement(
                                  SF.VariableDeclaration(
@@ -932,7 +943,8 @@ namespace Alphaleonis.EventSourceClassGenerator
 
                overloads.AddConstants(attributeSyntax, m_semanticModel, eventSourceTypeInfo);
 
-               attributeSyntax = m_generator.WithName(attributeSyntax, eventSourceTypeInfo.EventAttributeType.GetFullName());
+               attributeSyntax = m_generator.Attribute(eventSourceTypeInfo.EventAttributeType.GetFullName(), m_generator.GetAttributeArguments(attributeSyntax));
+                  
                attributes.Add(attributeSyntax);
 
 
