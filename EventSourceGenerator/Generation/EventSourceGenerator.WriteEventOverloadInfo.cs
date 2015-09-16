@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Alphaleonis.EventSourceClassGenerator
+namespace Alphaleonis.EventSourceGenerator
 {
    partial class EventSourceGenerator
    {

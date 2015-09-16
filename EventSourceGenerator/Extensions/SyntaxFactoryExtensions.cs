@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using CS = Microsoft.CodeAnalysis.CSharp.Syntax;
 using CSSF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace Alphaleonis.EventSourceClassGenerator
+namespace Alphaleonis.EventSourceGenerator
 {
    public static class SyntaxFactoryExtensions
    {

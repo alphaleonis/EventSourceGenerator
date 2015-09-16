@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Alphaleonis.EventSourceClassGenerator
+namespace Alphaleonis.EventSourceGenerator
 {
    partial class EventSourceGenerator
    {

@@ -273,8 +273,6 @@
   <ItemGroup>
     <Compile Include="Extensions\SyntaxFactoryExtensions.cs" />
     <Compile Include="Vsix\EventSourceGeneratorPackage.cs" />
-    <Compile Include="Vsix\BaseCodeGenerator.cs" />
-    <Compile Include="Vsix\BaseTextCodeGenerator.cs" />
     <Compile Include="Generation\EventSourceGenerator.cs" />
     <Compile Include="Generation\EventSourceGenerator.EventParameterInfo.cs" />
     <Compile Include="Generation\EventSourceGenerator.EventSourceTypeInfo.cs" />
@@ -288,7 +286,6 @@
     <Compile Include="Utils\SmartEnumerable.cs" />
     <Compile Include="Vsix\EventSourceSingleFileGenerator.cs" />
     <Compile Include="Generation\GenerationException.cs" />
-    <Compile Include="Guids.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

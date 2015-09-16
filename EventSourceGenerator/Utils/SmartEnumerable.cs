@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Alphaleonis.EventSourceClassGenerator
+namespace Alphaleonis.EventSourceGenerator
 {
  /// <summary>
     /// Static class to make creation easier. If possible though, use the extension

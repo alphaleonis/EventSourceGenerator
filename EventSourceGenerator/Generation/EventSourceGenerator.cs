@@ -16,7 +16,7 @@ using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 using System.Reflection;
 using Alphaleonis.Vsx;
 
-namespace Alphaleonis.EventSourceClassGenerator
+namespace Alphaleonis.EventSourceGenerator
 {
    internal partial class EventSourceGenerator
    {
@@ -1001,7 +1001,6 @@ namespace Alphaleonis.EventSourceClassGenerator
                ),
                SF.EndOfLine(Environment.NewLine)
             );
-         //SF.RegionDirectiveTrivia(SF.Token(SyntaxKind.HashToken), SF.Token(SyntaxKind.RegionKeyword), SF.Token(SF.TriviaList(SF.PreprocessingMessage(regionName)), SyntaxKind.EndOfDirectiveToken, SF.TriviaList()), true);         
       }
 
       private SyntaxTriviaList CreateWarningComment()
