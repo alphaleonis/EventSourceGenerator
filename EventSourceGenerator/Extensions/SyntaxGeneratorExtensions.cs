@@ -11,7 +11,7 @@ using CSSF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Alphaleonis.EventSourceGenerator
 {
-   public static class SyntaxFactoryExtensions
+   public static class SyntaxGeneratorExtensions
    {
       public static SyntaxNode ArrayCreationExpression(this SyntaxGenerator generator, SyntaxNode type, SyntaxNode sizeExpression)
       {

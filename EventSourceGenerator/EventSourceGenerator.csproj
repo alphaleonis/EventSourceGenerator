@@ -271,7 +271,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions\SyntaxFactoryExtensions.cs" />
+    <Compile Include="Extensions\SyntaxGeneratorExtensions.cs" />
     <Compile Include="Vsix\EventSourceGeneratorPackage.cs" />
     <Compile Include="Generation\EventSourceGenerator.cs" />
     <Compile Include="Generation\EventSourceGenerator.EventParameterInfo.cs" />
