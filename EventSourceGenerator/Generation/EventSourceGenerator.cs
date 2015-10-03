@@ -15,6 +15,7 @@ using SyntaxGenerator = Microsoft.CodeAnalysis.Editing.SyntaxGenerator;
 using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
 using System.Reflection;
 using Alphaleonis.Vsx;
+using Alphaleonis.Vsx.Roslyn.CSharp;
 
 namespace Alphaleonis.EventSourceGenerator
 {
@@ -28,7 +29,7 @@ namespace Alphaleonis.EventSourceGenerator
       private readonly Document m_document;
       private readonly Compilation m_compilation;
       private readonly SyntaxTree m_syntaxTree;
-      private readonly SyntaxNode m_root;
+      private readonly CompilationUnitSyntax m_root;
       private readonly SemanticModel m_semanticModel;
       private readonly SyntaxGenerator m_generator;
       private readonly ParameterConverterCollection m_parameterConverters;
@@ -37,7 +38,7 @@ namespace Alphaleonis.EventSourceGenerator
 
       #region Constructor
 
-      private EventSourceGenerator(Document document, Compilation compilation, SyntaxTree syntaxTree, SyntaxNode root, SemanticModel semanticModel)
+      private EventSourceGenerator(Document document, Compilation compilation, SyntaxTree syntaxTree, CompilationUnitSyntax root, SemanticModel semanticModel)
       {
          if (document == null)
             throw new ArgumentNullException("document", "document is null.");
@@ -88,11 +89,12 @@ namespace Alphaleonis.EventSourceGenerator
 
       #region Public Methods
 
-      public static async Task<SyntaxNode> GenerateEventSourceImplementations(Document document, CancellationToken cancellationToken = default(CancellationToken))
+      public static async Task<CompilationUnitSyntax> GenerateEventSourceImplementations(Document document, CancellationToken cancellationToken = default(CancellationToken))
       {
          Compilation compilation = await document.Project.GetCompilationAsync(cancellationToken);
          SyntaxTree syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
-         SyntaxNode root = await syntaxTree.GetRootAsync(cancellationToken);
+
+         CompilationUnitSyntax root = await document.GetCompilationUnitRootAsync(cancellationToken);
          SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree);
 
          EventSourceGenerator generator = new EventSourceGenerator(document, compilation, syntaxTree, root, semanticModel);
@@ -104,22 +106,17 @@ namespace Alphaleonis.EventSourceGenerator
 
       #region Private Methods
 
-      private SyntaxNode Generate()
-      {
-         IReadOnlyList<ClassDeclarationSyntax> sourceClasses = m_root
-            .DescendantNodesAndSelf(n => n.Kind() == SyntaxKind.NamespaceDeclaration || n.Kind() == SyntaxKind.CompilationUnit)
-            .OfType<ClassDeclarationSyntax>()
+      private CompilationUnitSyntax Generate()
+      {         
+         IReadOnlyList<ClassDeclarationSyntax> sourceClasses = m_root.TopLevelClasses()
             .Where(c => GetEventSourceBaseTypeInfo(m_semanticModel.GetDeclaredSymbol(c)) != null).ToImmutableArray();
 
-         SyntaxNode targetCompilationUnit = m_generator.CompilationUnit();
+         CompilationUnitSyntax targetCompilationUnit = SyntaxFactory.CompilationUnit(m_root.Externs, m_root.Usings, SyntaxFactory.List<AttributeListSyntax>(), SyntaxFactory.List<MemberDeclarationSyntax>());
 
          if (sourceClasses.Count == 0)
             return targetCompilationUnit;
 
-         // Add any global namespace imports.
-         targetCompilationUnit = m_generator.AddNamespaceImports(targetCompilationUnit, m_syntaxTree.GetCompilationUnitRoot().Usings);
-
-         Dictionary<string, SyntaxNode> namespaces = new Dictionary<string, SyntaxNode>();
+         Dictionary<string, NamespaceDeclarationSyntax> namespaces = new Dictionary<string, NamespaceDeclarationSyntax>();
 
          foreach (ClassDeclarationSyntax sourceClass in sourceClasses)
          {
@@ -127,24 +124,25 @@ namespace Alphaleonis.EventSourceGenerator
 
             string targetNamespaceName = sourceClassSymbol.ContainingNamespace.IsGlobalNamespace ? "" : sourceClassSymbol.ContainingNamespace.GetFullName();
 
-            SyntaxNode targetNamespace;
+            NamespaceDeclarationSyntax targetNamespace;
             if (!namespaces.TryGetValue(targetNamespaceName, out targetNamespace))
             {
-               targetNamespace = m_generator.NamespaceDeclaration(targetNamespaceName);
+               targetNamespace = (NamespaceDeclarationSyntax)m_generator.NamespaceDeclaration(targetNamespaceName);
                namespaces.Add(targetNamespaceName, targetNamespace);
             }
 
-            targetNamespace = m_generator.AddMembers(targetNamespace, GenerateEventSourceClass(sourceClassSymbol));
+            targetNamespace = targetNamespace.AddMembers(GenerateEventSourceClass(sourceClassSymbol));
 
             namespaces[targetNamespaceName] = targetNamespace;
          }
 
          if (namespaces.ContainsKey(String.Empty))
-            targetCompilationUnit = m_generator.AddMembers(targetCompilationUnit, m_generator.GetMembers(namespaces[String.Empty]));
+            targetCompilationUnit = targetCompilationUnit.AddMembers(namespaces[String.Empty]);
+               m_generator.AddMembers(targetCompilationUnit, m_generator.GetMembers(namespaces[String.Empty]));
 
-         targetCompilationUnit = m_generator.AddMembers(targetCompilationUnit, namespaces.Where(ns => ns.Key != String.Empty).Select(kvp => kvp.Value));
+         targetCompilationUnit = targetCompilationUnit.AddMembers(namespaces.Where(ns => ns.Key != String.Empty).Select(kvp => kvp.Value).ToArray());
 
-         return Formatter.Format(targetCompilationUnit, m_document.Project.Solution.Workspace);
+         return targetCompilationUnit;
       }
 
       private void ValidateReservedMemberName(INamedTypeSymbol sourceClass, string name)
@@ -154,7 +152,7 @@ namespace Alphaleonis.EventSourceGenerator
             throw new GenerationException(member, $"The class '{sourceClass.Name}' is not allowed to contain a member named '{name}'. Choose a different name for this member. The generated class will have a new generated nested class called '{name}', which is required by the event manifest generation.");
       }
 
-      private SyntaxNode GenerateEventSourceClass(INamedTypeSymbol sourceClass)
+      private ClassDeclarationSyntax GenerateEventSourceClass(INamedTypeSymbol sourceClass)
       {
          if (sourceClass.IsGenericType)
             throw new GenerationException(sourceClass, $"The template class '{sourceClass.Name}' for generating an EventSource implementation must not be generic.");
@@ -187,7 +185,7 @@ namespace Alphaleonis.EventSourceGenerator
 
          if (eventSourceMethods.Length > 0)
          {
-            eventSourceMethods = eventSourceMethods.SetItem(0, eventSourceMethods[0].WithPrependedLeadingTrivia(CreateRegionTriviaList("Event Methods")));
+            eventSourceMethods = eventSourceMethods.SetItem(0, eventSourceMethods[0].PrependLeadingTrivia(CreateRegionTriviaList("Event Methods")));
             eventSourceMethods = eventSourceMethods.SetItem(eventSourceMethods.Length - 1, eventSourceMethods.Last().WithTrailingTrivia(CreateEndRegionTriviaList().Add(SF.EndOfLine(Environment.NewLine)).Add(SF.EndOfLine(Environment.NewLine))));
          }
 
@@ -202,7 +200,7 @@ namespace Alphaleonis.EventSourceGenerator
 
          if (writeEventMethods.Length > 0)
          {
-            writeEventMethods = writeEventMethods.SetItem(0, writeEventMethods[0].WithPrependedLeadingTrivia(CreateRegionTriviaList("WriteEvent Overloads")));
+            writeEventMethods = writeEventMethods.SetItem(0, writeEventMethods[0].PrependLeadingTrivia(CreateRegionTriviaList("WriteEvent Overloads")));
             writeEventMethods = writeEventMethods.SetItem(writeEventMethods.Length - 1, writeEventMethods.Last().WithTrailingTrivia(CreateEndRegionTriviaList().Add(SF.EndOfLine(Environment.NewLine)).Add(SF.EndOfLine(Environment.NewLine))));
          }
 
@@ -222,7 +220,7 @@ namespace Alphaleonis.EventSourceGenerator
                                                       m_generator.AttributeArgument(m_generator.LiteralExpression(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>()?.Title)), 
                                                       m_generator.AttributeArgument(m_generator.LiteralExpression(Assembly.GetExecutingAssembly().GetName().Version.ToString()))));
 
-         return targetClass;
+         return (ClassDeclarationSyntax)targetClass;
       }
 
       private SyntaxNode GenerateConstantsClass(string className, Dictionary<string, SyntaxNode> constants, INamedTypeSymbol targetType)
@@ -528,7 +526,7 @@ namespace Alphaleonis.EventSourceGenerator
 
             method = m_generator.WithStatements(method, statements);
 
-            method = method.WithPrependedLeadingTrivia(CreateWarningComment());
+            method = method.PrependLeadingTrivia(CreateWarningComment());
 
             yield return method;
          }
