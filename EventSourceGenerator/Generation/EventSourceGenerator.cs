@@ -19,12 +19,15 @@ using Alphaleonis.Vsx.Roslyn.CSharp;
 
 namespace Alphaleonis.EventSourceGenerator
 {
+// TODO: Class selection is wrong. All classes are considered, event if they do not have a TemplateAttribute on them?!
+// TODO: Suppress WriteEvent overload generation.
+// 
    internal partial class EventSourceGenerator
    {
       #region Private Fields
 
-      private const string TemplateEventSourceAttributeName = "EventSourceTemplateAttribute";
-      private const string TemplateEventAttributeName = "EventTemplateAttribute";
+      private const string TemplateEventSourceAttributeName = "TemplateEventSourceAttribute";
+      private const string TemplateEventAttributeName = "TemplateEventAttribute";
 
       private readonly Document m_document;
       private readonly Compilation m_compilation;
@@ -137,8 +140,10 @@ namespace Alphaleonis.EventSourceGenerator
          }
 
          if (namespaces.ContainsKey(String.Empty))
+         {
             targetCompilationUnit = targetCompilationUnit.AddMembers(namespaces[String.Empty]);
-               m_generator.AddMembers(targetCompilationUnit, m_generator.GetMembers(namespaces[String.Empty]));
+            m_generator.AddMembers(targetCompilationUnit, m_generator.GetMembers(namespaces[String.Empty]));
+         }
 
          targetCompilationUnit = targetCompilationUnit.AddMembers(namespaces.Where(ns => ns.Key != String.Empty).Select(kvp => kvp.Value).ToArray());
 
