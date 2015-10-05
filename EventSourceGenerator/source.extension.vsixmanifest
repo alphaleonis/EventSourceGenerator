@@ -6,7 +6,7 @@
       <Description xml:space="preserve">An extension that helps writing EventSource classes for ETW tracing by automatically generating efficient implementations of the Event methods based on an abstract class, thus alleviating the developer from writing this boilerplate code.</Description>
       <MoreInfo>https://github.com/alphaleonis/EventSourceGenerator</MoreInfo>
       <License>LICENSE.TXT</License>
-      <Icon>Package.ico</Icon>
+      <Icon>Resources\Package.ico</Icon>
       <Tags>EventSource</Tags>
    </Metadata>
    <Installation InstalledByMsi="false">
