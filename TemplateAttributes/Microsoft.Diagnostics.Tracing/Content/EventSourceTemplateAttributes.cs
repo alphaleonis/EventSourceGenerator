@@ -11,7 +11,7 @@ namespace Microsoft.Diagnostics.Tracing
    {
       public TemplateEventSourceAttribute()
       {
-         Net45EventSourceCompatibility = true;
+         AllowUnsafeCode = true;
       }
 
       /// <summary>
@@ -58,13 +58,13 @@ namespace Microsoft.Diagnostics.Tracing
       public bool SuppressSingletonGeneration { get; set; }
 
       /// <summary>
-      ///   Gets or sets a value indicating whether to generate an implementation compatible with the .NET 4.5 
-      ///   EventSource. This prevents usage of some parameter types in any generated WriteEvent overloads. 
-      ///   Set this to <c>true</c> if you are using the System.Diagnostics.Tracing.EventSource class in 
-      ///   .NET 4.5.X. Set it to false if you are using the Nuget version of EventSource or the EventSource
-      ///   in .NET 4.6 or later. The default is <c>true</c>.
+      /// Gets or sets a value indicating whether unsafe will be generated for WriteEvent overloads.
+      /// Allowing this increases performance of high-volume events for which a WriteEvent overload is
+      /// not available in the base class, but it requires that your project is configured to allow
+      /// unsafe code.  The default is <see langword="true"/>.
       /// </summary>
-      public bool Net45EventSourceCompatibility { get; set; }      
+      /// <value>true if allow unsafe code, false if not.</value>
+      public bool AllowUnsafeCode { get; set; }
    }
 
    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]

@@ -1,16 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <metadata>
-        <id>EventSourceGeneratorTemplateAttributes.Nuget</id>
-        <version>1.0.0</version>
-        <authors>Peter Palotas</authors>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>This package contains the TemplateEventSource and TemplateEvent attributes required for use with the C# EventSource Implementation Generator Visual Studio extension.
+   <metadata>
+      <id>EventSourceGeneratorTemplateAttributes.Nuget</id>
+      <version>1.0.0</version>
+      <authors>Peter Palotas</authors>
+      <licenseUrl>https://github.com/alphaleonis/EventSourceGenerator/blob/master/LICENSE.TXT</licenseUrl>
+      <projectUrl>https://github.com/alphaleonis/EventSourceGenerator</projectUrl>
+      <iconUrl>https://raw.githubusercontent.com/alphaleonis/EventSourceGenerator/master/Images/icon96.png</iconUrl>
+      <requireLicenseAcceptance>false</requireLicenseAcceptance>
+      <requireLicenseAcceptance>false</requireLicenseAcceptance>
+      <description>
+         This package contains the TemplateEventSource and TemplateEvent attributes required for use with the Alphaleonis EventSource Generator (C#) Visual Studio extension.
 
-This package is for use with the Microsoft.Diagnostics.Tracing.EventSource class available as a NuGet package.</description>
-        <summary>This package contains the TemplateEventSource and TemplateEvent attributes required for use with the C# EventSource Implementation Generator Visual Studio extension.</summary>
-    </metadata>
-    <files>
-        <file src="Content\EventSourceTemplateAttributes.cs" target="content\Tracing\EventSourceTemplateAttributes.cs" />
-    </files>
+         This package is for use with the Microsoft.Diagnostics.Tracing.EventSource class available as a NuGet package.
+      </description>
+   </metadata>
+   <files>
+      <file src="Content\EventSourceTemplateAttributes.cs" target="content\Tracing\EventSourceTemplateAttributes.cs" />
+   </files>
 </package>

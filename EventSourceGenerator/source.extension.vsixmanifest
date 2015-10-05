@@ -1,15 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
    <Metadata>
-      <Identity Id="764EC787-CB08-423B-95CA-87128A43C36D" Version="0.2" Language="en-US" Publisher="Peter Palotas" />
-      <DisplayName>EventSourceGenerator</DisplayName>
+      <Identity Id="EventSourceGenerator.Alphaleonis.764EC787-CB08-423B-95CA-87128A43C36D" Version="0.5" Language="en-US" Publisher="Peter Palotas" />
+      <DisplayName>Alphaleonis EventSource Generator (C#)</DisplayName>
       <Description xml:space="preserve">An extension that helps writing EventSource classes for ETW tracing by automatically generating efficient implementations of the Event methods based on an abstract class, thus alleviating the developer from writing this boilerplate code.</Description>
+      <MoreInfo>https://github.com/alphaleonis/EventSourceGenerator</MoreInfo>
       <License>LICENSE.TXT</License>
       <Icon>Package.ico</Icon>
       <Tags>EventSource</Tags>
    </Metadata>
    <Installation InstalledByMsi="false">
-      <InstallationTarget Version="[14.0,15.0)" Id="Microsoft.VisualStudio.Enterprise" />
+      <InstallationTarget Version="[14.0,15.0)" Id="Microsoft.VisualStudio.Community" />
    </Installation>
    <Dependencies>
       <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />

@@ -25,7 +25,10 @@ namespace Alphaleonis.EventSourceGenerator
 
       protected override Task<CompilationUnitSyntax> GenerateCompilationUnit(Document sourceDocument)
       {
-         return EventSourceGenerator.GenerateEventSourceImplementations(sourceDocument);
+         if (TargetFrameworkName == null)
+            throw new CodeGeneratorException($"Unable to determine the Target Framework for the project.");
+
+         return EventSourceGenerator.GenerateEventSourceImplementations(sourceDocument, TargetFrameworkName);
       }
 
       protected override string GetDefaultExtension()

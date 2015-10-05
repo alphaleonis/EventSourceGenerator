@@ -37,7 +37,7 @@ Property|Description
 --------|-----------
 `TargetClassName` | Specifies the name of the class to generate. Defaults to the same name as the template class, with "Impl" appended, or if the template class name ends with "Base" or "Template", the default target class name is the name of the template class without the "Base" or "Template" suffix.
 `SuppressSingletonGeneration` |  If set to `false` (the default) the generated class will include a static property called `Log` exposing a singleton instance of the EventSource class. If set to `true`, this property is not generated.  
-`Net45EventSourceCompatibility` | Specifies whether to generate an implementation compatible with the .NET 4.5 EventSource. This prevents usage of some parameter types in any generated WriteEvent overloads. Set this to `true` if you are using the System.Diagnostics.Tracing.EventSource class in .NET 4.5.X. Set it to `false` if you are using the NuGet version of EventSource or the EventSource in .NET 4.6 or later. The default is `true`.
+`AllowUnsafeCode`| If set to `true` (the default) optimized `WriteEvent` method overloads will be generated for any event method signature missing from the base `EventSource` class. This reuqires that unsafe code is allowed in the project settings to compile.
 
 ## Usage
 
@@ -48,7 +48,7 @@ The basic usage is probably best illustrated with a simple example:
 Create a new `.cs` file and set the *Custom Tool* property to `EventSourceGenerator`. Then create the following class inside it:
 
 ```C#
-[TemplateEventSource(Name = "MyCompany-MyEventSource", Net45EventSourceCompatibility = false)]
+[TemplateEventSource(Name = "MyCompany-MyEventSource", AllowUnsafeCode = false)]
 public abstract class MyEventSourceTemplate : EventSource
 {
     [TemplateEvent(10, Channel = EventChannel.Admin, Level = EventLevel.Informational, Message = "Some message: {0}")]
@@ -115,7 +115,7 @@ public abstract class CommonEventSourceBase : EventSource
 Then we define our template class and assign it the `EventSourceGenerator` Custom Tool. This class derives from the previously defined abstract class, which will incorporate the events from that class as well in the generated code.
 
 ```C#
-[TemplateEventSource(Name = "MyCompany-MyEventSource", Net45EventSourceCompatibility = false, TargetClassName = "MyRenamedEventSource")]
+[TemplateEventSource(Name = "MyCompany-MyEventSource", AllowUnsafeCode = true, TargetClassName = "MyRenamedEventSource")]
 public abstract class MyEventSourceTemplate : CommonEventSourceBase
 {
     [TemplateEvent(10, Channel = EventChannel.Admin, Level = EventLevel.Informational, Message = "Some message: {0}", Keywords = MyKeywords.MyKeyword, Task = MyTasks.MyTask, Opcode = MyOpcodes.MyOpcode)]
@@ -230,4 +230,4 @@ This example illustrates most of the features of the Event Source Generators. We
 
 The template method `TestEvent1` that we created however, has been decorated with the `NonEvent` attribute, which may seem a bit strange. But we can also see that a private method has been created for this event, but with the `TimeSpan` parameter changed to `string`. The public method handles the translation of this parameter to a string. The `TimeSpan` type is currently the only type for which this is supported, and this is not recommended for high-volume events since the ToString() call will take a little time. But it may be handy on some occasions. 
 
-We also see that an overload has been created for `WriteEvent`, matching the parameters of our event method, since such an overload did not exist in the base class. 
+We also see that an overload has been created for `WriteEvent`, matching the parameters of our event method, since such an overload did not exist in the base class, and we allowed the generation of unsafe code. If this property had been set to `false` in the `EventSourceAttribute` no such method would have been generated, and the overload in the base class accepting a `params object[] args` array would have been used, leading to somewhat less performant code. This does however require that we check the flag to "Allow unsafe code" in the project settings of our assembly.

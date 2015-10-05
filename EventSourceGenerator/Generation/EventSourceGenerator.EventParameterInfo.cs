@@ -65,7 +65,7 @@ namespace Alphaleonis.EventSourceGenerator
                   // The following types are supported in NuGet EventSource
                   case SpecialType.System_Char:
                   case SpecialType.System_IntPtr:
-                     return !m_options.Net45EventSourceCompatibility;
+                     return m_options.TargetFrameworkVersion.CompareTo(new Version(4, 6)) >= 0;                        
                }
 
                if (type.TypeKind == TypeKind.Enum)
@@ -75,7 +75,7 @@ namespace Alphaleonis.EventSourceGenerator
                   return true;
 
                // byte* is a supported type in NuGet EventSource.
-               if (!m_options.Net45EventSourceCompatibility && type.TypeKind == TypeKind.Pointer && ((IPointerTypeSymbol)type).PointedAtType.SpecialType == SpecialType.System_Byte)
+               if (m_options.TargetFrameworkVersion.CompareTo(new Version(4, 6)) >= 0 && type.TypeKind == TypeKind.Pointer && ((IPointerTypeSymbol)type).PointedAtType.SpecialType == SpecialType.System_Byte)
                   return true;
 
                return false;

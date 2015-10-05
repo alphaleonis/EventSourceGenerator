@@ -1,3 +1,4 @@
+using Alphaleonis.Vsx;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -97,7 +98,7 @@ namespace Alphaleonis.EventSourceGenerator
             if (attributeListSyntax != null)
             {
                if (attributeListSyntax.Attributes.Count != 1)
-                  throw new GenerationException(attribute, "Expected a single attribute in attribute list, but either none or more than one were found.");
+                  throw new CodeGeneratorException(attribute, "Expected a single attribute in attribute list, but either none or more than one were found.");
 
                attributeSyntax = attributeListSyntax.Attributes.Single();
             }
@@ -105,7 +106,7 @@ namespace Alphaleonis.EventSourceGenerator
             {
                attributeSyntax = attribute as AttributeSyntax;
                if (attributeSyntax == null)
-                  throw new GenerationException(attribute, $"SyntaxNode was not of expected type {typeof(AttributeSyntax).FullName}");
+                  throw new CodeGeneratorException(attribute, $"SyntaxNode was not of expected type {typeof(AttributeSyntax).FullName}");
             }
 
             AddToDictionary(attributeSyntax, "Keywords", m_keywords, semanticModel, eventSourceTypeInfo.EventKeywordsType);
@@ -134,7 +135,7 @@ namespace Alphaleonis.EventSourceGenerator
          {
             public override IEnumerable<MemberAccessExpressionSyntax> DefaultVisit(SyntaxNode node)
             {
-               throw new GenerationException(node, $"Unsupported node {node.Kind()} found in enum assignment expression.");
+               throw new CodeGeneratorException(node, $"Unsupported node {node.Kind()} found in enum assignment expression.");
             }
 
             public override IEnumerable<MemberAccessExpressionSyntax> VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
@@ -153,7 +154,7 @@ namespace Alphaleonis.EventSourceGenerator
                      break;
 
                   default:
-                     throw new GenerationException(node.GetLocation(), $"Unsupported binary expression {node.Kind()}. Only bitwise OR, AND, XOR and addition is allowed.");
+                     throw new CodeGeneratorException(node.GetLocation(), $"Unsupported binary expression {node.Kind()}. Only bitwise OR, AND, XOR and addition is allowed.");
                }
 
                return node.ChildNodes().SelectMany(n => Visit(n));
@@ -167,7 +168,7 @@ namespace Alphaleonis.EventSourceGenerator
             public override IEnumerable<MemberAccessExpressionSyntax> VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
                if (node.Kind() != SyntaxKind.SimpleMemberAccessExpression)
-                  throw new GenerationException(node, $"Unsupported expression of type {node.Kind()} in enum assignment. Only simple member access is allowed.");
+                  throw new CodeGeneratorException(node, $"Unsupported expression of type {node.Kind()} in enum assignment. Only simple member access is allowed.");
 
                return new[] { node };
             }

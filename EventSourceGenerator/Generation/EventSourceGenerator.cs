@@ -16,16 +16,15 @@ using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 using System.Reflection;
 using Alphaleonis.Vsx;
 using Alphaleonis.Vsx.Roslyn.CSharp;
+using System.Runtime.Versioning;
 
 namespace Alphaleonis.EventSourceGenerator
 {
-// TODO: Class selection is wrong. All classes are considered, event if they do not have a TemplateAttribute on them?!
-// TODO: Suppress WriteEvent overload generation.
-// 
    internal partial class EventSourceGenerator
    {
       #region Private Fields
 
+      private readonly FrameworkName m_targetFramework;
       private const string TemplateEventSourceAttributeName = "TemplateEventSourceAttribute";
       private const string TemplateEventAttributeName = "TemplateEventAttribute";
 
@@ -41,7 +40,7 @@ namespace Alphaleonis.EventSourceGenerator
 
       #region Constructor
 
-      private EventSourceGenerator(Document document, Compilation compilation, SyntaxTree syntaxTree, CompilationUnitSyntax root, SemanticModel semanticModel)
+      private EventSourceGenerator(Document document, Compilation compilation, SyntaxTree syntaxTree, CompilationUnitSyntax root, SemanticModel semanticModel, FrameworkName targetFramework)
       {
          if (document == null)
             throw new ArgumentNullException("document", "document is null.");
@@ -58,6 +57,7 @@ namespace Alphaleonis.EventSourceGenerator
          if (semanticModel == null)
             throw new ArgumentNullException("semanticModel", "semanticModel is null.");
 
+         m_targetFramework = targetFramework;
          m_document = document;
          m_compilation = compilation;
          m_syntaxTree = syntaxTree;
@@ -73,7 +73,7 @@ namespace Alphaleonis.EventSourceGenerator
                  .Select(s => new EventSourceTypeInfo(m_semanticModel, s)));
 
          if (EventSourceTypes.Count == 0)
-            throw new GenerationException("The class System.Diagnostics.Tracing.EventSource or Microsoft.Diagnostics.Tracing.EventSource could not be found. You need to add a reference to the assembly containing one of these classes to continue.");
+            throw new CodeGeneratorException("The class System.Diagnostics.Tracing.EventSource or Microsoft.Diagnostics.Tracing.EventSource could not be found. You need to add a reference to the assembly containing one of these classes to continue.");
 
          m_generator = SyntaxGenerator.GetGenerator(document);
          m_parameterConverters = new ParameterConverterCollection(m_semanticModel, m_generator);
@@ -92,7 +92,7 @@ namespace Alphaleonis.EventSourceGenerator
 
       #region Public Methods
 
-      public static async Task<CompilationUnitSyntax> GenerateEventSourceImplementations(Document document, CancellationToken cancellationToken = default(CancellationToken))
+      public static async Task<CompilationUnitSyntax> GenerateEventSourceImplementations(Document document, FrameworkName targetFrameworkName, CancellationToken cancellationToken = default(CancellationToken))
       {
          Compilation compilation = await document.Project.GetCompilationAsync(cancellationToken);
          SyntaxTree syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
@@ -100,7 +100,7 @@ namespace Alphaleonis.EventSourceGenerator
          CompilationUnitSyntax root = await document.GetCompilationUnitRootAsync(cancellationToken);
          SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-         EventSourceGenerator generator = new EventSourceGenerator(document, compilation, syntaxTree, root, semanticModel);
+         EventSourceGenerator generator = new EventSourceGenerator(document, compilation, syntaxTree, root, semanticModel, targetFrameworkName);
 
          return generator.Generate();
       }
@@ -154,16 +154,16 @@ namespace Alphaleonis.EventSourceGenerator
       {
          var member = sourceClass.GetMembers(name).FirstOrDefault();
          if (member != null)
-            throw new GenerationException(member, $"The class '{sourceClass.Name}' is not allowed to contain a member named '{name}'. Choose a different name for this member. The generated class will have a new generated nested class called '{name}', which is required by the event manifest generation.");
+            throw new CodeGeneratorException(member, $"The class '{sourceClass.Name}' is not allowed to contain a member named '{name}'. Choose a different name for this member. The generated class will have a new generated nested class called '{name}', which is required by the event manifest generation.");
       }
 
       private ClassDeclarationSyntax GenerateEventSourceClass(INamedTypeSymbol sourceClass)
       {
          if (sourceClass.IsGenericType)
-            throw new GenerationException(sourceClass, $"The template class '{sourceClass.Name}' for generating an EventSource implementation must not be generic.");
+            throw new CodeGeneratorException(sourceClass, $"The template class '{sourceClass.Name}' for generating an EventSource implementation must not be generic.");
 
          if (!sourceClass.IsAbstract)
-            throw new GenerationException(sourceClass, $"The class '{sourceClass.Name}' must be abstract to participate in EventSource implementation generation.");
+            throw new CodeGeneratorException(sourceClass, $"The class '{sourceClass.Name}' must be abstract to participate in EventSource implementation generation.");
 
          ValidateReservedMemberName(sourceClass, "Opcodes");
          ValidateReservedMemberName(sourceClass, "Keywords");
@@ -201,23 +201,27 @@ namespace Alphaleonis.EventSourceGenerator
 
          targetClass = targetClass.WithLeadingTrivia(CreateWarningComment());
 
-         var writeEventMethods = GenerateWriteEventOverloads(overloads, options, eventSourceTypeInfo).ToImmutableArray();
-
-         if (writeEventMethods.Length > 0)
+         if (options.AllowUnsafeCode)
          {
-            writeEventMethods = writeEventMethods.SetItem(0, writeEventMethods[0].PrependLeadingTrivia(CreateRegionTriviaList("WriteEvent Overloads")));
-            writeEventMethods = writeEventMethods.SetItem(writeEventMethods.Length - 1, writeEventMethods.Last().WithTrailingTrivia(CreateEndRegionTriviaList().Add(SF.EndOfLine(Environment.NewLine)).Add(SF.EndOfLine(Environment.NewLine))));
+            var writeEventMethods = GenerateWriteEventOverloads(overloads, options, eventSourceTypeInfo).ToImmutableArray();
+
+            if (writeEventMethods.Length > 0)
+            {
+               writeEventMethods = writeEventMethods.SetItem(0, writeEventMethods[0].PrependLeadingTrivia(CreateRegionTriviaList("WriteEvent Overloads")));
+               writeEventMethods = writeEventMethods.SetItem(writeEventMethods.Length - 1, writeEventMethods.Last().WithTrailingTrivia(CreateEndRegionTriviaList().Add(SF.EndOfLine(Environment.NewLine)).Add(SF.EndOfLine(Environment.NewLine))));
+            }
+
+            targetClass = m_generator.AddMembers(targetClass, writeEventMethods);
          }
 
-         targetClass = m_generator.AddMembers(targetClass, writeEventMethods);
+         if (overloads.Keywords.Count > 0)
+            targetClass = m_generator.AddMembers(targetClass, GenerateConstantsClass("Keywords", overloads.Keywords, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventKeywords")));
 
-         targetClass = m_generator.AddMembers(targetClass,
-            new SyntaxNode[]
-            {
-               GenerateConstantsClass("Keywords", overloads.Keywords, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventKeywords")),
-               GenerateConstantsClass("Opcodes", overloads.Opcodes, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventOpcode")),
-               GenerateConstantsClass("Tasks", overloads.Tasks, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventTask"))
-            });
+         if (overloads.Opcodes.Count > 0)
+            GenerateConstantsClass("Opcodes", overloads.Opcodes, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventOpcode"));
+
+         if (overloads.Tasks.Count > 0)
+            GenerateConstantsClass("Tasks", overloads.Tasks, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventTask"));
 
          // Add GeneratedCode attribute to the target class.
          targetClass = m_generator.AddAttributes(targetClass, 
@@ -346,7 +350,7 @@ namespace Alphaleonis.EventSourceGenerator
             string eventDataTypeFullName = eventSourceTypeInfo.EventSourceClass.GetFullName() + "+EventData";
             INamedTypeSymbol eventDataType = m_compilation.GetTypeByMetadataName(eventDataTypeFullName);
             if (eventDataType == null)
-               throw new GenerationException($"Failed to lookup type {eventDataTypeFullName}.");
+               throw new CodeGeneratorException($"Failed to lookup type {eventDataTypeFullName}.");
 
             TypeSyntax eventDataTypeSyntax = (TypeSyntax)m_generator.TypeExpression(eventDataType);
 
@@ -690,11 +694,16 @@ namespace Alphaleonis.EventSourceGenerator
          var templateMethods = GetEventSourceTemplateMethods(sourceClass, eventSourceTypeInfo);
          foreach (var sourceMethodEntry in templateMethods.AsSmartEnumerable())
          {
-            var sourceMethod = sourceMethodEntry.Value;
+            IMethodSymbol sourceMethod = sourceMethodEntry.Value;
 
             TemplateEventMethodInfo eventAttributeInfo = TranslateMethodAttributes(sourceMethod, eventSourceTypeInfo, overloads);
 
             WriteEventOverloadInfo overloadInfo = new WriteEventOverloadInfo(sourceMethodEntry.Value, options, m_parameterConverters);
+
+            if (overloadInfo.Parameters.Any(p => p.IsSupported == false))
+            {
+               throw new CodeGeneratorException(sourceMethod, $"The parameter(s) {StringUtils.Join(overloadInfo.Parameters.Where(p => !p.IsSupported).Select(p => $"{p.Parameter.Name} ({p.Parameter.Type.Name})"), ", ", " and ")} are not supported.");
+            }
 
             overloads.TryAdd(overloadInfo);
 
@@ -829,7 +838,7 @@ namespace Alphaleonis.EventSourceGenerator
             else if (method.GetAttributes().Any(attribute => attribute.AttributeClass.Name.Equals(TemplateEventAttributeName)))
             {
                if (!method.IsAbstract)
-                  throw new GenerationException(method, $"The method {sourceClass.Name}.{method.Name} must be abstract to participate in EventSource generation.");
+                  throw new CodeGeneratorException(method, $"The method {sourceClass.Name}.{method.Name} must be abstract to participate in EventSource generation.");
 
                yield return method;
             }
@@ -845,7 +854,7 @@ namespace Alphaleonis.EventSourceGenerator
       {
          AttributeData eventSourceTemplateAttribute = GetCustomAttribute(sourceClass, TemplateEventSourceAttributeName);
 
-         GenerationOptions options = new GenerationOptions();
+         GenerationOptions options = new GenerationOptions(m_targetFramework.Version);
 
          if (eventSourceTemplateAttribute != null)
          {
@@ -858,7 +867,7 @@ namespace Alphaleonis.EventSourceGenerator
                   {
                      if (!namedArgument.Value.Value.GetType().Equals(propertyInfo.PropertyType))
                      {
-                        throw new GenerationException($"The value for argument {namedArgument.Key} of attribute {TemplateEventSourceAttributeName} on {sourceClass.Name} has the wrong type. Expected {propertyInfo.PropertyType.Name}, found {namedArgument.Value.Value.GetType()}.");
+                        throw new CodeGeneratorException($"The value for argument {namedArgument.Key} of attribute {TemplateEventSourceAttributeName} on {sourceClass.Name} has the wrong type. Expected {propertyInfo.PropertyType.Name}, found {namedArgument.Value.Value.GetType()}.");
                      }
                      else
                      {
@@ -896,7 +905,7 @@ namespace Alphaleonis.EventSourceGenerator
          }
          catch (InvalidOperationException)
          {
-            throw new GenerationException(sourceClass, $"The class '{sourceClass.Name}' is decorated with multiple attributes named '{attributeName}'. At most one such attribute may be present on any one class.");
+            throw new CodeGeneratorException(sourceClass, $"The class '{sourceClass.Name}' is decorated with multiple attributes named '{attributeName}'. At most one such attribute may be present on any one class.");
          }
       }
 
@@ -942,7 +951,7 @@ namespace Alphaleonis.EventSourceGenerator
             {               
                SyntaxNode attributeSyntax = attributeData.ApplicationSyntaxReference?.GetSyntax();
                if (attributeSyntax == null)
-                  throw new GenerationException(sourceMethod, $"Cannot find the source file containing the method {sourceMethod.Name}. The source code must be available for any Template EventSource class to participate in generation. Is the project unloaded?");
+                  throw new CodeGeneratorException(sourceMethod, $"Cannot find the source file containing the method {sourceMethod.Name}. The source code must be available for any Template EventSource class to participate in generation. Is the project unloaded?");
 
                overloads.AddConstants(attributeSyntax, m_semanticModel, eventSourceTypeInfo);
 
@@ -953,10 +962,10 @@ namespace Alphaleonis.EventSourceGenerator
 
                TypedConstant eventIdArgument = attributeData.ConstructorArguments.FirstOrDefault();
                if (attributeData.ConstructorArguments.Length == 0)
-                  throw new GenerationException(sourceMethod, $"The {attributeData.AttributeClass.Name} attribute must have an event ID as its first argument.");
+                  throw new CodeGeneratorException(sourceMethod, $"The {attributeData.AttributeClass.Name} attribute must have an event ID as its first argument.");
 
                if (!(eventIdArgument.Value is int))
-                  throw new GenerationException(sourceMethod, $"The first argument to the {attributeData.AttributeClass.Name} attribute must be of type Int32.");
+                  throw new CodeGeneratorException(sourceMethod, $"The first argument to the {attributeData.AttributeClass.Name} attribute must be of type Int32.");
 
                eventId = (int)eventIdArgument.Value;
                eventAttribute = attributeSyntax;
@@ -968,10 +977,10 @@ namespace Alphaleonis.EventSourceGenerator
          }
 
          if (eventAttribute == null)
-            throw new GenerationException(sourceMethod, $"Internal error; Unable to find EventAttribute or TemplateEventAttribute on method {sourceMethod.Name}");
+            throw new CodeGeneratorException(sourceMethod, $"Internal error; Unable to find EventAttribute or TemplateEventAttribute on method {sourceMethod.Name}");
 
          if (eventId == null)
-            throw new GenerationException(sourceMethod, $"Unable to determine EventId for method {sourceMethod.Name}");
+            throw new CodeGeneratorException(sourceMethod, $"Unable to determine EventId for method {sourceMethod.Name}");
 
          return new TemplateEventMethodInfo(attributes, eventId.Value);
       }
@@ -1027,8 +1036,8 @@ namespace Alphaleonis.EventSourceGenerator
             accessibility: Accessibility.Private,
             modifiers: DeclarationModifiers.Static | DeclarationModifiers.ReadOnly,
             initializer: m_generator.ObjectCreationExpression(m_generator.IdentifierName(options.TargetClassName))
-         ).WithLeadingTrivia(CreateRegionTriviaList("Singleton Accessor"));
-
+         ).WithLeadingTrivia(CreateRegionTriviaList("Singleton Accessor")).AddLeadingTrivia(CreateWarningComment());
+         
          yield return m_generator.PropertyDeclaration(
             name: "Log",
             type: m_generator.IdentifierName(sourceClass.Name),
@@ -1038,7 +1047,7 @@ namespace Alphaleonis.EventSourceGenerator
             {
                m_generator.ReturnStatement(m_generator.IdentifierName("s_instance"))
             }
-         ).WithTrailingTrivia(CreateEndRegionTriviaList().Add(SF.EndOfLine(Environment.NewLine)).Add(SF.EndOfLine(Environment.NewLine)));
+         ).WithLeadingTrivia(CreateWarningComment()).WithTrailingTrivia(CreateEndRegionTriviaList().Add(SF.EndOfLine(Environment.NewLine)).Add(SF.EndOfLine(Environment.NewLine)));
       }
 
       private SyntaxNode CreateAttribute(AttributeData attributeData)

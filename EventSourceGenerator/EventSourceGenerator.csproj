@@ -285,7 +285,6 @@
     <Compile Include="Generation\EventSourceGenerator.WriteEventOverloadInfo.cs" />
     <Compile Include="Utils\SmartEnumerable.cs" />
     <Compile Include="Vsix\EventSourceSingleFileGenerator.cs" />
-    <Compile Include="Generation\GenerationException.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

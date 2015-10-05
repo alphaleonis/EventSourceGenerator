@@ -46,7 +46,7 @@ namespace Alphaleonis.EventSourceGenerator
             {
                return m_sourceMethod;
             }
-         }
+         }         
       }
    }
 }
