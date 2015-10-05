@@ -8,7 +8,7 @@
       <projectUrl>https://github.com/alphaleonis/EventSourceGenerator</projectUrl>
       <iconUrl>https://raw.githubusercontent.com/alphaleonis/EventSourceGenerator/master/Images/icon96.png</iconUrl>
       <requireLicenseAcceptance>false</requireLicenseAcceptance>
-      <requireLicenseAcceptance>false</requireLicenseAcceptance>
+      <summary>This package contains the TemplateEventSource and TemplateEvent attributes required for use with the Alphaleonis EventSource Generator (C#) Visual Studio extension.</summary>
       <description>
          This package contains the TemplateEventSource and TemplateEvent attributes required for use with the Alphaleonis EventSource Generator (C#) Visual Studio extension.
 
