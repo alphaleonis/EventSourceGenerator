@@ -121,7 +121,7 @@ namespace Alphaleonis.EventSourceGenerator
             if (argument != null)
             {
                KeywordsExpressionCollectorVisitor visitor = new KeywordsExpressionCollectorVisitor();
-               
+                              
                foreach (var memberAccess in visitor.Visit(argument.Expression))
                {
                   TypeInfo ti = semanticModel.GetTypeInfo(memberAccess.Expression);

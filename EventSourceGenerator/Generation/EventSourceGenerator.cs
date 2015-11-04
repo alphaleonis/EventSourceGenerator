@@ -17,6 +17,7 @@ using System.Reflection;
 using Alphaleonis.Vsx;
 using Alphaleonis.Vsx.Roslyn.CSharp;
 using System.Runtime.Versioning;
+using System.Runtime.InteropServices;
 
 namespace Alphaleonis.EventSourceGenerator
 {
@@ -218,10 +219,10 @@ namespace Alphaleonis.EventSourceGenerator
             targetClass = m_generator.AddMembers(targetClass, GenerateConstantsClass("Keywords", overloads.Keywords, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventKeywords")));
 
          if (overloads.Opcodes.Count > 0)
-            GenerateConstantsClass("Opcodes", overloads.Opcodes, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventOpcode"));
+            targetClass = m_generator.AddMembers(targetClass, GenerateConstantsClass("Opcodes", overloads.Opcodes, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventOpcode")));
 
          if (overloads.Tasks.Count > 0)
-            GenerateConstantsClass("Tasks", overloads.Tasks, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventTask"));
+            targetClass = m_generator.AddMembers(targetClass, GenerateConstantsClass("Tasks", overloads.Tasks, m_compilation.GetTypeByMetadataName(eventSourceTypeInfo.EventSourceNamespace.GetFullName() + ".EventTask")));
 
          // Add GeneratedCode attribute to the target class.
          targetClass = m_generator.AddAttributes(targetClass, 
@@ -532,6 +533,10 @@ namespace Alphaleonis.EventSourceGenerator
             {
                statements.Add(fixedStatementSyntax);
             }
+            else
+            {
+               statements.Add(fixedContent);
+            }
 
             method = m_generator.WithStatements(method, statements);
 
@@ -576,6 +581,9 @@ namespace Alphaleonis.EventSourceGenerator
             }
          }
 
+         if (type.GetFullName() == typeof(Guid).FullName && type.ContainingAssembly.Name == typeof(Guid).Assembly.GetName().Name)
+            return m_generator.LiteralExpression(Marshal.SizeOf<Guid>());
+         
          switch (type.SpecialType)
          {
             case SpecialType.System_Boolean:
@@ -953,7 +961,12 @@ namespace Alphaleonis.EventSourceGenerator
                if (attributeSyntax == null)
                   throw new CodeGeneratorException(sourceMethod, $"Cannot find the source file containing the method {sourceMethod.Name}. The source code must be available for any Template EventSource class to participate in generation. Is the project unloaded?");
 
-               overloads.AddConstants(attributeSyntax, m_semanticModel, eventSourceTypeInfo);
+               Document attributeDocument = m_document.Project.Solution.GetDocument(attributeSyntax.SyntaxTree);
+               if (attributeDocument == null)
+                  throw new CodeGeneratorException(sourceMethod, $"Cannot find the document containing the method {sourceMethod.Name}.");
+
+               
+               overloads.AddConstants(attributeSyntax, attributeDocument.GetSemanticModelAsync().Result, eventSourceTypeInfo);
 
                attributeSyntax = m_generator.Attribute(eventSourceTypeInfo.EventAttributeType.GetFullName(), m_generator.GetAttributeArguments(attributeSyntax));
                   

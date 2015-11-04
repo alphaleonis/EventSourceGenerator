@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Alphaleonis.Vsx;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,6 +68,9 @@ namespace Alphaleonis.EventSourceGenerator
                   case SpecialType.System_IntPtr:
                      return m_options.TargetFrameworkVersion.CompareTo(new Version(4, 6)) >= 0;                        
                }
+
+               if (type.GetFullName() == typeof(Guid).FullName && type.ContainingAssembly.Name == typeof(Guid).Assembly.GetName().Name)
+                  return true;
 
                if (type.TypeKind == TypeKind.Enum)
                   return true;
