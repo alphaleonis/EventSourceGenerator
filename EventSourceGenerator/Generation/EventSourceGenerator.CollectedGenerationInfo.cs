@@ -2,6 +2,7 @@ using Alphaleonis.Vsx;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -125,10 +126,23 @@ namespace Alphaleonis.EventSourceGenerator
                foreach (var memberAccess in visitor.Visit(argument.Expression))
                {
                   TypeInfo ti = semanticModel.GetTypeInfo(memberAccess.Expression);
-                  if (!predefinedType.Equals(ti.Type))
+                  
+                  if (!AreConsideredEqual(predefinedType, ti.Type))
                      dictionary[memberAccess.Name.Identifier.Text] = memberAccess;
                }
             }
+         }
+
+         private static bool AreConsideredEqual(ITypeSymbol type1, ITypeSymbol type2)
+         {
+            if (type1 == null)
+               return type2 == null;
+
+            if (type2 == null)
+               return false;
+
+            return type1.ContainingAssembly.ToDisplayString().Equals(type2.ContainingAssembly.ToDisplayString()) &&
+                   type1.ToDisplayString().Equals(type2.ToDisplayString());
          }
 
          class KeywordsExpressionCollectorVisitor : CSharpSyntaxVisitor<IEnumerable<MemberAccessExpressionSyntax>>
