@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourceGenerator", "EventSourceGenerator\EventSourceGenerator.csproj", "{8B9EF7F7-2D88-4357-B0B2-00B2A95E990B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.Diagnostics.Tracing", "Microsoft.Diagnostics.Tracing", "{7B62B296-E5A7-4C9A-8A56-B4988EEC2419}"
 	ProjectSection(SolutionItems) = preProject
 		TemplateAttributes\Microsoft.Diagnostics.Tracing\EventSourceGeneratorTemplateAttributes.Nuget.1.0.0.nuspec = TemplateAttributes\Microsoft.Diagnostics.Tracing\EventSourceGeneratorTemplateAttributes.Nuget.1.0.0.nuspec
@@ -27,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net46", "net46", "{7F7F0B05
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Template Attributes", "Template Attributes", "{FD0D631F-E0D6-4AC7-80E8-CA59BCF17857}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourceGenerator", "EventSourceGenerator\EventSourceGenerator.csproj", "{8B9EF7F7-2D88-4357-B0B2-00B2A95E990B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlphaVSX", "AlphaVSX\AlphaVSX.csproj", "{55C0204E-67A8-475D-95F6-529F9CFFE465}"
 EndProject
