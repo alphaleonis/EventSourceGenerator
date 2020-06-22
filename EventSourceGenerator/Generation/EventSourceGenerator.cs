@@ -93,7 +93,7 @@ namespace Alphaleonis.EventSourceGenerator
 
       #region Public Methods
 
-      public static async Task<CompilationUnitSyntax> GenerateEventSourceImplementations(Document document, FrameworkName targetFrameworkName, CancellationToken cancellationToken = default(CancellationToken))
+      public static async Task<CompilationUnitSyntax> GenerateEventSourceImplementationsAsync(Document document, FrameworkName targetFrameworkName, CancellationToken cancellationToken = default(CancellationToken))
       {
          Compilation compilation = await document.Project.GetCompilationAsync(cancellationToken);
          SyntaxTree syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);

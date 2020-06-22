@@ -28,7 +28,7 @@ namespace Alphaleonis.EventSourceGenerator
          if (TargetFrameworkName == null)
             throw new CodeGeneratorException($"Unable to determine the Target Framework for the project.");
 
-         return EventSourceGenerator.GenerateEventSourceImplementations(sourceDocument, TargetFrameworkName);
+         return EventSourceGenerator.GenerateEventSourceImplementationsAsync(sourceDocument, TargetFrameworkName);
       }
 
       protected override string GetDefaultExtension()

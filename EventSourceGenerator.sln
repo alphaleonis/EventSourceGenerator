@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.Diagnostics.Tracing", "Microsoft.Diagnostics.Tracing", "{7B62B296-E5A7-4C9A-8A56-B4988EEC2419}"
 	ProjectSection(SolutionItems) = preProject
@@ -53,5 +53,8 @@ Global
 		{AD70F159-ADD0-494B-8A62-B19A8F86A1F4} = {FD0D631F-E0D6-4AC7-80E8-CA59BCF17857}
 		{F10E946E-3D53-4994-ACF9-C2E20350B551} = {AD70F159-ADD0-494B-8A62-B19A8F86A1F4}
 		{7F7F0B05-10FE-4E11-850B-FE73E9BBE9E3} = {AD70F159-ADD0-494B-8A62-B19A8F86A1F4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {44F08545-A081-4364-A5DC-DD491DF95DEE}
 	EndGlobalSection
 EndGlobal
