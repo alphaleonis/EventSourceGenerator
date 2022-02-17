@@ -14,10 +14,12 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using SyntaxGenerator = Microsoft.CodeAnalysis.Editing.SyntaxGenerator;
 using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
 using System.Reflection;
-using Alphaleonis.Vsx;
-using Alphaleonis.Vsx.Roslyn.CSharp;
+
 using System.Runtime.Versioning;
 using System.Runtime.InteropServices;
+using Alphaleonis.Vsx;
+using Alphaleonis.Vsx.Roslyn.CSharp;
+using Microsoft.VisualStudio.Shell;
 
 namespace Alphaleonis.EventSourceGenerator
 {
@@ -965,8 +967,9 @@ namespace Alphaleonis.EventSourceGenerator
                if (attributeDocument == null)
                   throw new CodeGeneratorException(sourceMethod, $"Cannot find the document containing the method {sourceMethod.Name}.");
 
-               
-               overloads.AddConstants(attributeSyntax, attributeDocument.GetSemanticModelAsync().Result, eventSourceTypeInfo);
+
+               var semanticModel = ThreadHelper.JoinableTaskFactory.Run(() => attributeDocument.GetSemanticModelAsync());
+               overloads.AddConstants(attributeSyntax, semanticModel, eventSourceTypeInfo);
 
                attributeSyntax = m_generator.Attribute(eventSourceTypeInfo.EventAttributeType.GetFullName(), m_generator.GetAttributeArguments(attributeSyntax));
                   

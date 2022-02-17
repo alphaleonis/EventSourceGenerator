@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
 using System.Linq;
-using Alphaleonis.Vsx;
 using System.ComponentModel.Composition;
 using System.Threading;
 
@@ -53,11 +52,11 @@ namespace Alphaleonis.EventSourceGenerator
          // initialization is the Initialize method.
       }
 
-      [Import]
-      private IDialogService DialogService
-      {
-         get; set;
-      }
+      //[Import]
+      //private IDialogService DialogService
+      //{
+      //   get; set;
+      //}
 
       #region Package Members
 
@@ -67,8 +66,7 @@ namespace Alphaleonis.EventSourceGenerator
       /// </summary>
       protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
       {
-         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
-         Toolkit.Initialize(this);
+         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);         
       }
       
       #endregion

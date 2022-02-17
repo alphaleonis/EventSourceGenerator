@@ -23,7 +23,7 @@ namespace Alphaleonis.EventSourceGenerator
       {
       }
 
-      protected override Task<CompilationUnitSyntax> GenerateCompilationUnit(Document sourceDocument)
+      protected override Task<CompilationUnitSyntax> GenerateCompilationUnitAsync(Document sourceDocument)
       {
          if (TargetFrameworkName == null)
             throw new CodeGeneratorException($"Unable to determine the Target Framework for the project.");
