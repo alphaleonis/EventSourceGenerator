@@ -952,6 +952,16 @@ namespace Alphaleonis.EventSourceGenerator
 
          SyntaxNode eventAttribute = null;
          int? eventId = null;
+         
+         // The sourceMethod symbol may originate from a compilation of a project other than the one that contains the source code, for 
+         // example in the case of a derived class. We must get the method from the correct semantic model (belonging to the project defining the method)
+         // to be able to get the ApplicationSyntaxReferences for the attributes (apparently).
+         var methodDocument = m_document.Project.Solution.GetDocument(sourceMethod.DeclaringSyntaxReferences.First().SyntaxTree);
+         if (methodDocument == null)
+            throw new CodeGeneratorException(sourceMethod, $"Cannot find the document containing the method {sourceMethod.Name}.");
+
+         var semanticModel = ThreadHelper.JoinableTaskFactory.Run(() => methodDocument.GetSemanticModelAsync());
+         sourceMethod = (IMethodSymbol)semanticModel.GetDeclaredSymbol(sourceMethod.DeclaringSyntaxReferences.First().GetSyntax());
 
          foreach (AttributeData attributeData in sourceMethod.GetAttributes())
          {
@@ -961,14 +971,10 @@ namespace Alphaleonis.EventSourceGenerator
             {               
                SyntaxNode attributeSyntax = attributeData.ApplicationSyntaxReference?.GetSyntax();
                if (attributeSyntax == null)
+               {
                   throw new CodeGeneratorException(sourceMethod, $"Cannot find the source file containing the method {sourceMethod.Name}. The source code must be available for any Template EventSource class to participate in generation. Is the project unloaded?");
-
-               Document attributeDocument = m_document.Project.Solution.GetDocument(attributeSyntax.SyntaxTree);
-               if (attributeDocument == null)
-                  throw new CodeGeneratorException(sourceMethod, $"Cannot find the document containing the method {sourceMethod.Name}.");
-
-
-               var semanticModel = ThreadHelper.JoinableTaskFactory.Run(() => attributeDocument.GetSemanticModelAsync());
+               }
+              
                overloads.AddConstants(attributeSyntax, semanticModel, eventSourceTypeInfo);
 
                attributeSyntax = m_generator.Attribute(eventSourceTypeInfo.EventAttributeType.GetFullName(), m_generator.GetAttributeArguments(attributeSyntax));
